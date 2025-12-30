@@ -13,9 +13,19 @@ public class Venue {
         this.tables = tables;
         this.seatsPerTable = seatsPerTable;
     }
-    public String getName() { return name; }
-    public double getCost() { return cost; }
-    public int getCapacity() { return capacity; }
-    public int getTables() { return tables; }
-    public int getSeatsPerTable() { return seatsPerTable; }
+    public String getName() {
+        return name;
+    }
+    public double getCost() {
+        return cost;
+    }
+    public int getCapacity() {
+        return capacity;
+    }
+    public int getTables() {
+        return tables;
+    }
+    public int getSeatsPerTable() {
+        return seatsPerTable;
+    }
 }
