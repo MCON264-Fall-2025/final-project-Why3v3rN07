@@ -11,7 +11,7 @@ public class Generators {
             new Venue("Grand Ballroom",5000,120,15,8)
         );
     }
-    public static List<Guest> GenerateGuests(int n) {
+    public static List<Guest> generateGuests(int n) {
         List<Guest> guests = new ArrayList<>();
         String[] groups = {"family","friends","neighbors","coworkers"};
         for(int i=1;i<=n;i++){
