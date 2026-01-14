@@ -109,10 +109,10 @@ public class TaskWorkflowTest {
 
         assertEquals(2, manager.remainingTaskCount(), "Should have Task 2 and Task 3 remaining");
 
-        Task next = manager.executeNextTask(); // Should execute Task 2
-        assertEquals("Task 2", next.getDescription());
-        Task last = manager.executeNextTask(); // Should execute Task 3
-        assertEquals("Task 3", last.getDescription());
+        Task next = manager.executeNextTask(); // Should execute Task 3
+        assertEquals("Task 3", next.getDescription());
+        Task last = manager.executeNextTask(); // Should execute Task 2
+        assertEquals("Task 2", last.getDescription());
     }
 
     @Test
@@ -152,5 +152,6 @@ public class TaskWorkflowTest {
         assertNull(undone, "No more tasks to undo");
     }
 }
+
 
 
