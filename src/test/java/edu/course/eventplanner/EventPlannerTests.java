@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class EventPlannerTests {
@@ -108,8 +109,33 @@ public class EventPlannerTests {
     }
 
     @Test
-    void executesAndUndoesTasks() {
+    void executeTasks() {
         TaskManager manager = new TaskManager();
+
+        assertEquals(0, manager.remainingTaskCount());
+        assertNull(manager.executeNextTask());
+
+        manager.addTask(new Task("Task 1"));
+        manager.addTask(new Task("Task 2"));
+        manager.addTask(new Task("Task 3"));
+
+        assertEquals(3, manager.remainingTaskCount());
+
+        assertEquals("Task 1", manager.executeNextTask().getDescription());
+        assertEquals(2, manager.remainingTaskCount());
+
+        manager.executeNextTask();
+        assertEquals("Task 3", manager.executeNextTask().getDescription());
+        assertEquals(0, manager.remainingTaskCount());
+
+        assertNull(manager.executeNextTask());
+    }
+    @Test
+    void undoTasks() {
+        TaskManager manager = new TaskManager();
+
+        assertNull(manager.undoLastTask());
+
         manager.addTask(new Task("Task 1"));
         manager.addTask(new Task("Task 2"));
         manager.addTask(new Task("Task 3"));
@@ -117,9 +143,15 @@ public class EventPlannerTests {
         assertEquals(3, manager.remainingTaskCount());
 
         manager.executeNextTask();
-        assertEquals(2, manager.remainingTaskCount());
+        manager.executeNextTask();
+        assertEquals(1, manager.remainingTaskCount());
 
-        manager.undoLastTask();
+        assertEquals("Task 2", manager.undoLastTask().getDescription());
+        assertEquals(2, manager.remainingTaskCount());
+        assertEquals("Task 1", manager.undoLastTask().getDescription());
+        assertEquals(3, manager.remainingTaskCount());
+
+        assertNull(manager.undoLastTask());
         assertEquals(3, manager.remainingTaskCount());
     }
 }

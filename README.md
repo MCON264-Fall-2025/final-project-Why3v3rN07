@@ -49,6 +49,20 @@ linked lists, stacks, queues, maps, trees, sorting, and searching.
 - `completed` tasks use stack behavior (LIFO) for undo.
 - Matches assignment requirement to use both a queue and a stack.
 
+## TaskManager 
+
+### **Queue (FIFO) — Upcoming Tasks**
+- Implemented using `Deque<Task>` but operated in **queue mode** (`addLast`, `removeFirst`).
+- Represents tasks that must be completed in the order they were added.
+- Models real‑world workflows where preparation steps follow a sequence.
+- Required by the assignment to demonstrate use of a **queue**.
+
+### **Stack (LIFO) — Completed Tasks (Undo Support)**
+- Implemented using the same `Deque<Task>` but operated in **stack mode** (`push`, `pop`).
+- Stores tasks that have already been completed.
+- Enables undo functionality by reversing the most recent completed task.
+- Required by the assignment to demonstrate use of a **stack**.
+
 ---
 
 # **Sorting and Searching Algorithms Used**

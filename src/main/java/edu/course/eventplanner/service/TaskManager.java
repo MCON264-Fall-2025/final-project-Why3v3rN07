@@ -8,7 +8,7 @@ public class TaskManager {
     private final Deque<Task> completed = new ArrayDeque<>();
 
     public void addTask(Task task) {
-        upcoming.add(task);
+        upcoming.addLast(task);
     }
     public Task executeNextTask() {
         if (upcoming.isEmpty()) return null;
@@ -17,8 +17,9 @@ public class TaskManager {
     }
     public Task undoLastTask() {
         if (completed.isEmpty()) return null;
-        upcoming.addFirst(completed.pop());
-        return upcoming.peek();
+        Task undone = completed.pop();
+        upcoming.addLast(undone);
+        return undone;
     }
     public int remainingTaskCount() {
         return upcoming.size();
