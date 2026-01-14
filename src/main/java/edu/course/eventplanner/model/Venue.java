@@ -18,4 +18,14 @@ public class Venue {
     public int getCapacity() { return capacity; }
     public int getTables() { return tables; }
     public int getSeatsPerTable() { return seatsPerTable; }
+    public String toString() {
+        return
+        "Venue: " + name + "\n" +
+        "Cost: " + cost + "\n" +
+        "Capacity:  " + capacity + "\n" +
+        "Tables: " + tables + "\n" +
+        "Seats per table: " + seatsPerTable + "\n";
+    }
+
+
 }

@@ -4,24 +4,23 @@ import edu.course.eventplanner.model.*;
 import edu.course.eventplanner.service.*;
 import edu.course.eventplanner.util.Generators;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
+    static GuestListManager guestListManager = new GuestListManager();
+    static TaskManager taskManager = new TaskManager();
+    static VenueSelector venueSelector = null;
+    static Venue chosenVenue = null;
+    static Map<Integer, List<Guest>> seating = null;
+
     public static void main(String[] args) {
-        GuestListManager guestListManager = new GuestListManager();
-        TaskManager taskManager = new TaskManager();
-        VenueSelector venueSelector = new VenueSelector(new ArrayList<Venue>());
-        Venue chosenVenue = null;
 
         Scanner input = new Scanner(System.in);
         boolean done = false;
+        System.out.println("Event Planner Mini");
         while (!done) {
-            System.out.println("Event Planner Mini");
             System.out.print("""
-                      ~~~~ Menu ~~~~
+                    \n  ~~~~ Menu ~~~~
                     0. Load sample guests
                     1. Load sample venues
                     2. Add guest
@@ -34,18 +33,17 @@ public class Main {
                     9. Print event summary
                     10. Exit
                     
-                    Enter your choice:\s
-                    """);
+                    Enter your choice:\s""");
             switch (input.nextLine()) {
-                case "0": loadSampleGuests(input, guestListManager); break;
-                case "1": loadSampleVenues(venueSelector); break;
-                case "2": addGuest(input, guestListManager); break;
-                case "3": removeGuest(input, guestListManager); break;
-                case "4": selectVenue(input, venueSelector, guestListManager, chosenVenue); break;
-                case "5": generateSeatingChart(chosenVenue, guestListManager); break;
-                case "6": addPreparationTask(input, taskManager); break;
-                case "7": executeNextTask(taskManager); break;
-                case "8": undoLastTask(taskManager); break;
+                case "0": loadSampleGuests(input); break;
+                case "1": loadSampleVenues(); break;
+                case "2": addGuest(input); break;
+                case "3": removeGuest(input); break;
+                case "4": selectVenue(input); break;
+                case "5": generateSeatingChart(); break;
+                case "6": addPreparationTask(input); break;
+                case "7": executeNextTask(); break;
+                case "8": undoLastTask(); break;
                 case "9": printEventSummary(); break;
                 case "10": done = true; break;
                 default: System.out.println("Invalid entry; try again.");
@@ -53,19 +51,23 @@ public class Main {
         }
     }
 
-    private static void loadSampleGuests(Scanner input, GuestListManager guestListManager) {
-        System.out.println("Number of guests to load: ");
-        int numGuests = Integer.parseInt(input.nextLine()); //need error handling
-        for (Guest g : Generators.generateGuests(numGuests))
-            guestListManager.addGuest(g);
-        System.out.println(numGuests + " guests loaded.");
+    private static void loadSampleGuests(Scanner input) {
+        System.out.print("Number of guests to load: ");
+        if (input.hasNextInt()) {
+            int numGuests = input.nextInt();
+            input.nextLine();
+            for (Guest g : Generators.generateGuests(numGuests))
+                guestListManager.addGuest(g);
+            System.out.println(numGuests + " guests loaded.");
+        } else invalid();
     }
 
-    private static void loadSampleVenues(VenueSelector venueSelector) {
+    private static void loadSampleVenues() {
         venueSelector = new VenueSelector(Generators.generateVenues());
+        System.out.println("Venues loaded.");
     }
 
-    private static void addGuest(Scanner input, GuestListManager guestListManager) {
+    private static void addGuest(Scanner input) {
         System.out.print("Guest name: ");
         String name = input.nextLine();
         System.out.print("Group tag: ");
@@ -74,7 +76,7 @@ public class Main {
         System.out.println("Guest added.");
     }
 
-    private static void removeGuest(Scanner input, GuestListManager guestListManager) {
+    private static void removeGuest(Scanner input) {
         System.out.print("Guest name: ");
         String name = input.nextLine();
         if (guestListManager.findGuest(name) != null) {
@@ -83,65 +85,144 @@ public class Main {
         } else System.out.println("Guest not found.");
     }
 
-    private static void selectVenue(Scanner input, VenueSelector venueSelector, GuestListManager guestListManager, Venue chosenVenue) {
+    private static void selectVenue(Scanner input) {
+        if (guestListManager.getGuestCount() == 0) {
+            System.out.println("No guests loaded; please upload guestlist first.");
+            return;
+        }
+        if (venueSelector == null) {
+            System.out.println("No venues loaded; please load venues first.");
+            return;
+        }
+        if (chosenVenue != null) {
+            System.out.println("You previously selected this venue: \n" + chosenVenue);
+            System.out.print("Would you like to change your selection? (y/n) ");
+            String reply = input.nextLine().toLowerCase();
+            if (reply.equals("y")) System.out.println("Starting Venue Selector...");
+            else if (reply.equals("n")) {
+                System.out.println("Continuing with previous selection.");
+                return;
+            }
+            else {
+                invalid();
+                return;
+            }
+        }
         System.out.print("What's your budget? $");
         double budget;
         if (input.hasNextDouble()) {
             budget = input.nextDouble();
+            input.nextLine();
             Venue best = venueSelector.selectVenue(budget, guestListManager.getGuestCount());
-            System.out.println("Best venue: " +
-                    "Name: " + best.getName() +
-                    "Cost: " + best.getCost() +
-                    "Capacity: " + best.getCapacity()
-            );
-            System.out.println("""
-                    Is this acceptable?
-                    1. Yes, set this as my venue
-                    2. No, view all options
-            """);
-            switch(input.nextLine()) {
-                case "1":
-                    chosenVenue = best;
-                    System.out.println("Venue set.");
-                    break;
-                case "2":
-                    //TODO: print other venues
-                    break;
-                default: System.out.println("Invalid entry; returning to menu.");
+            if (best == null) offerFittingVenues(input);
+            else {
+                System.out.println("\nBest Option: \n" + best);
+                System.out.println("""
+                        Is this acceptable?
+                        1. Yes, set this as my venue
+                        2. No, view all valid options""");
+                switch (input.nextLine()) {
+                    case "1":
+                        chosenVenue = best;
+                        System.out.println("Venue set.");
+                        break;
+                    case "2":
+                        List<Venue> validVenues = venueSelector.getOptionsList(budget, guestListManager.getGuestCount());
+                        if (validVenues.isEmpty()) {
+                            offerFittingVenues(input);
+                            break;
+                        }
+                        for (int i = 0; i < validVenues.size(); i++)
+                            System.out.println(i + ")\n" + validVenues.get(i).toString());
+                        System.out.print("Which venue would you like to use? (Enter the number) ");
+                        if (input.hasNextInt()) {
+                            int choice = input.nextInt();
+                            input.nextLine();
+                            if (choice >= 0 && choice < validVenues.size()){
+                                chosenVenue = validVenues.get(choice);
+                                System.out.println("Venue set.");
+                            } else invalid();
+                            break;
+                        } 
+                        invalid();
+                        break;
+                    default: invalid();
+                }
+            }
+        } else invalid();
+    }
+
+    private static void offerFittingVenues(Scanner input) {
+        List<Venue> fittingVenues = venueSelector.getFitting(guestListManager.getGuestCount());
+        if (fittingVenues.isEmpty()) {
+            System.out.println("Sorry, no venues fitting " + guestListManager.getGuestCount() + " guests found.");
+        }
+        else {
+            System.out.println("Sorry, no venues found that fit your budget. \nAvailable venues with high enough capacity: \n");
+            for (int i = 0; i < fittingVenues.size(); i++)
+                System.out.println(i + ")\n" + fittingVenues.get(i).toString());
+            System.out.print("Which venue would you like to use? (Enter the number) ");
+            try {
+                chosenVenue = fittingVenues.get(input.nextInt());
+                input.nextLine();
+                System.out.println("Venue set.");
+            } catch (IndexOutOfBoundsException e) {
+                invalid();
             }
         }
-        System.out.println("Invalid entry; returning to menu. ");
     }
 
-    private static void generateSeatingChart(Venue chosenVenue, GuestListManager guestListManager) {
-        if (chosenVenue != null) {
-            SeatingPlanner planner = new SeatingPlanner(chosenVenue);
-            Map<Integer, List<Guest>> seating = planner.generateSeating(guestListManager.getAllGuests());
-            //TODO: print seating chart
-        } else System.out.println("No venue selected; please select a venue first.");
-    }
-
-    private static void addPreparationTask(Scanner input, TaskManager taskManager) {
-        System.out.print("Task description: ");
-        taskManager.addTask(new Task(input.nextLine()));
-        System.out.println("Task added.");
-    }
-
-    private static void executeNextTask(TaskManager taskManager) {
-        if (taskManager.remainingTaskCount() == 0) System.out.println( "No tasks to execute.");
+    private static void generateSeatingChart() {
+        if (chosenVenue == null) System.out.println("No venue selected; please select a venue first.");
+        else if (guestListManager.getGuestCount() == 0) System.out.println("No guests loaded; please upload guestlist first.");
         else {
-            Task completedTask = taskManager.executeNextTask();
-            System.out.print("Task '" + completedTask.getDescription() + "' completed.");
+            SeatingPlanner planner = new SeatingPlanner(chosenVenue);
+            seating = planner.generateSeating(guestListManager.getAllGuests());
+            printSeating();
         }
     }
 
-    private static void undoLastTask(TaskManager taskManager) {
-        if (taskManager.completedTaskCount() < 0)
-            System.out.println("Task '"+taskManager.undoLastTask().getDescription()+"' undone.");
-        else System.out.println("No tasks to undo.");
+    private static void printSeating() {
+        System.out.println("---Seating Chart---\n");
+        for (Integer table : seating.keySet()) {
+            System.out.println("\nTable " + table + ":");
+            for (Guest guest : seating.get(table)) System.out.println(guest.getName() + " (" + guest.getGroupTag() + ")");
+        }
+        System.out.println("\n");
+    }
+
+    private static void addPreparationTask(Scanner input) {
+        System.out.print("Task description: ");
+        taskManager.addTask(new Task(input.nextLine()));
+        System.out.println("Task added. ");
+        System.out.println(taskManager.remainingTaskCount() + " tasks left to do; " + taskManager.completedTaskCount() + " completed.");
+    }
+
+    private static void executeNextTask() {
+        Task completedTask = taskManager.executeNextTask();
+        if (completedTask == null) System.out.println( "No tasks to execute.");
+        else System.out.println("Task '" + completedTask.getDescription() + "' completed.");
+        System.out.println(taskManager.remainingTaskCount() + " tasks left to do; " + taskManager.completedTaskCount() + " completed.");
+    }
+
+    private static void undoLastTask() {
+        Task undoneTask = taskManager.undoLastTask();
+        if (undoneTask == null) System.out.println("No tasks to undo.");
+        else System.out.println("Task '"+undoneTask.getDescription()+"' undone.");
+        System.out.println(taskManager.remainingTaskCount() + " tasks left to do; " + taskManager.completedTaskCount() + " completed.");
     }
 
     private static void printEventSummary() {
-        //TODO: print all data
+        System.out.println("\n---Event Summary---\n");
+        if (chosenVenue != null) System.out.println(chosenVenue);
+        else System.out.println("No venue selected.");
+        System.out.println("Guests: " + guestListManager.getGuestCount());
+        printSeating();
+        System.out.println("Task Status:");
+        System.out.println(taskManager.remainingTaskCount() + " tasks left to do; " + taskManager.completedTaskCount() + " completed.");
+    }
+
+    private static void invalid() {
+        System.out.println("Invalid entry; returning to menu.");
     }
 }

@@ -13,7 +13,6 @@ public class GuestListManager {
     }
     public boolean removeGuest(String guestName) {
         return guests.remove(guestByName.remove(guestName));
-        //hashmap.remove returns null if not found -- what does linkedlist.remove(null) return?
     }
     public Guest findGuest(String guestName) {
         return guestByName.get(guestName);
