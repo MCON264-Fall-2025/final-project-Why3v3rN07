@@ -11,6 +11,8 @@ public class SeatingPlanner {
     public SeatingPlanner(Venue venue) { this.venue = venue; }
 
     public Map<Integer, List<Guest>> generateSeating(List<Guest> guests) {
+        if (guests.isEmpty()) return tables;
+
         int seatsPerTable = venue.getSeatsPerTable();
         for (Guest guest : guests) { //sort guests
             groups.putIfAbsent(guest.getGroupTag(), new LinkedList<>());
