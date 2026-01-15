@@ -1,15 +1,15 @@
 package edu.course.eventplanner;
+
 import edu.course.eventplanner.model.*;
 import edu.course.eventplanner.service.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.*;
 
+import static edu.course.eventplanner.Main.guestListManager;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -121,9 +121,9 @@ public class EventPlannerTests {
             ArrayList<Venue> sorted_venues = selector.getOptionsList(Integer.MAX_VALUE, 1);
             assertEquals(5, sorted_venues.size());
 
-            for (int i = 0; i < sorted_venues.size()-1; i++) {
-                assertTrue(sorted_venues.get(i).getCost() <= sorted_venues.get(i+1).getCost());
-                assertTrue(sorted_venues.get(i).getCapacity() <= sorted_venues.get(i+1).getCapacity());
+            for (int i = 0; i < sorted_venues.size() - 1; i++) {
+                assertTrue(sorted_venues.get(i).getCost() <= sorted_venues.get(i + 1).getCost());
+                assertTrue(sorted_venues.get(i).getCapacity() <= sorted_venues.get(i + 1).getCapacity());
             }
 
             assertEquals("Community Hall", sorted_venues.getFirst().getName());
@@ -136,7 +136,7 @@ public class EventPlannerTests {
             assertEquals(5, list1.size());
             assertEquals("Community Hall", list1.getFirst().getName());
 
-            SortedSet<Venue> list2= selector.getOptions(5000, 100);
+            SortedSet<Venue> list2 = selector.getOptions(5000, 100);
             assertEquals(1, list2.size());
             assertEquals("Grand Ballroom", list2.getFirst().getName());
 
@@ -217,6 +217,7 @@ public class EventPlannerTests {
         SeatingPlanner planner;
         List<Guest> guests;
         Venue venue;
+
         @BeforeEach
         void setUp() {
             venue = new Venue("Test Hall", 500, 30, 6, 5);
@@ -259,7 +260,7 @@ public class EventPlannerTests {
             Map<Integer, List<Guest>> seating = planner.generateSeating(guests);
             assertEquals(5, seating.get(0).size());
 
-            for (int i = 0; i < venue.getCapacity()/guests.size(); i++) assertEquals(5, seating.get(i).size());
+            for (int i = 0; i < venue.getCapacity() / guests.size(); i++) assertEquals(5, seating.get(i).size());
         }
 
         @Test
@@ -361,10 +362,6 @@ public class EventPlannerTests {
             assertEquals("Task 3", manager.undoLastTask().getDescription());
         }
     }
-    /*
-    @Nested
-    class InterfaceTests {
-        //am I meant to mock Main?
-    }
-     */
+
+
 }

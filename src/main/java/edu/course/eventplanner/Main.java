@@ -45,13 +45,13 @@ public class Main {
                 case "7": executeNextTask(); break;
                 case "8": undoLastTask(); break;
                 case "9": printEventSummary(); break;
-                case "10": done = true; break;
-                default: System.out.println("Invalid entry; try again.");
+                case "10": done = true; System.out.println("Goodbye."); break;
+                default: invalid();
             }
         }
     }
 
-    private static void loadSampleGuests(Scanner input) {
+    static void loadSampleGuests(Scanner input) {
         System.out.print("Number of guests to load: ");
         if (input.hasNextInt()) {
             int numGuests = input.nextInt();
@@ -62,12 +62,12 @@ public class Main {
         } else invalid();
     }
 
-    private static void loadSampleVenues() {
+    static void loadSampleVenues() {
         venueSelector = new VenueSelector(Generators.generateVenues());
         System.out.println("Venues loaded.");
     }
 
-    private static void addGuest(Scanner input) {
+    static void addGuest(Scanner input) {
         System.out.print("Guest name: ");
         String name = input.nextLine();
         System.out.print("Group tag: ");
@@ -76,16 +76,16 @@ public class Main {
         System.out.println("Guest added.");
     }
 
-    private static void removeGuest(Scanner input) {
+    static void removeGuest(Scanner input) {
         System.out.print("Guest name: ");
         String name = input.nextLine();
         if (guestListManager.findGuest(name) != null) {
-            boolean result = guestListManager.removeGuest(name);
-            System.out.println(result ? "Guest removed." : "Guest not found.");
+            guestListManager.removeGuest(name);
+            System.out.println("Guest removed.");
         } else System.out.println("Guest not found.");
     }
 
-    private static void selectVenue(Scanner input) {
+    static void selectVenue(Scanner input) {
         if (guestListManager.getGuestCount() == 0) {
             System.out.println("No guests loaded; please upload guestlist first.");
             return;
@@ -172,9 +172,9 @@ public class Main {
         }
     }
 
-    private static void generateSeatingChart() {
-        if (chosenVenue == null) System.out.println("No venue selected; please select a venue first.");
-        else if (guestListManager.getGuestCount() == 0) System.out.println("No guests loaded; please upload guestlist first.");
+    static void generateSeatingChart() {
+        if (guestListManager.getGuestCount() == 0) System.out.println("No guests loaded; please upload guestlist first.");
+        else if (chosenVenue == null) System.out.println("No venue selected; please select a venue first.");
         else {
             SeatingPlanner planner = new SeatingPlanner(chosenVenue);
             seating = planner.generateSeating(guestListManager.getAllGuests());
@@ -183,43 +183,52 @@ public class Main {
     }
 
     private static void printSeating() {
-        System.out.println("---Seating Chart---\n");
-        for (Integer table : seating.keySet()) {
-            System.out.println("\nTable " + table + ":");
-            for (Guest guest : seating.get(table)) System.out.println(guest.getName() + " (" + guest.getGroupTag() + ")");
+        if (seating == null) System.out.println("Seating chart not generated.");
+        else {
+            System.out.println("---Seating Chart---\n");
+            for (Integer table : seating.keySet()) {
+                System.out.println("\nTable " + table + ":");
+                for (Guest guest : seating.get(table))
+                    System.out.println(guest.getName() + " (" + guest.getGroupTag() + ")");
+            }
+            System.out.println("\n");
         }
-        System.out.println("\n");
     }
 
-    private static void addPreparationTask(Scanner input) {
+    static void addPreparationTask(Scanner input) {
         System.out.print("Task description: ");
         taskManager.addTask(new Task(input.nextLine()));
-        System.out.println("Task added. ");
-        System.out.println(taskManager.remainingTaskCount() + " tasks left to do; " + taskManager.completedTaskCount() + " completed.");
+        System.out.println("Task added.");
+        System.out.println(taskManager.remainingTaskCount() + " task(s) left to do; " + taskManager.completedTaskCount() + " completed.");
     }
 
-    private static void executeNextTask() {
+    static void executeNextTask() {
         Task completedTask = taskManager.executeNextTask();
         if (completedTask == null) System.out.println( "No tasks to execute.");
         else System.out.println("Task '" + completedTask.getDescription() + "' completed.");
         System.out.println(taskManager.remainingTaskCount() + " tasks left to do; " + taskManager.completedTaskCount() + " completed.");
     }
 
-    private static void undoLastTask() {
+    static void undoLastTask() {
         Task undoneTask = taskManager.undoLastTask();
         if (undoneTask == null) System.out.println("No tasks to undo.");
         else System.out.println("Task '"+undoneTask.getDescription()+"' undone.");
         System.out.println(taskManager.remainingTaskCount() + " tasks left to do; " + taskManager.completedTaskCount() + " completed.");
     }
 
-    private static void printEventSummary() {
+    static void printEventSummary() {
         System.out.println("\n---Event Summary---\n");
+
         if (chosenVenue != null) System.out.println(chosenVenue);
         else System.out.println("No venue selected.");
-        System.out.println("Guests: " + guestListManager.getGuestCount());
+
+        System.out.println("Guests: " + guestListManager.getGuestCount() + "\n");
+
         printSeating();
+
         System.out.println("Task Status:");
-        System.out.println(taskManager.remainingTaskCount() + " tasks left to do; " + taskManager.completedTaskCount() + " completed.");
+        System.out.println(taskManager.remainingTaskCount() + " upcoming task(s)");
+        System.out.println(taskManager.completedTaskCount() + " task(s) completed");
     }
 
     private static void invalid() {
