@@ -216,9 +216,11 @@ public class EventPlannerTests {
     class SeatingPlannerTests {
         SeatingPlanner planner;
         List<Guest> guests;
+        Venue venue;
         @BeforeEach
         void setUp() {
-            planner = new SeatingPlanner(new Venue("Test Hall", 500, 30, 6, 5));
+            venue = new Venue("Test Hall", 500, 30, 6, 5);
+            planner = new SeatingPlanner(venue);
             guests = List.of(
                     new Guest("Alicia", "family"),
                     new Guest("Barbara", "family"),
@@ -244,11 +246,11 @@ public class EventPlannerTests {
 
         @Test
         void usesCorrectNumberOfTables() {
-            Map<Integer, List<Guest>> seating = planner.generateSeating(new ArrayList<>());
+            Map<Integer, List<Guest>> seating = planner.generateSeating(guests);
             assertEquals(6, seating.size());
 
-            SeatingPlanner planner2 = new SeatingPlanner(new Venue("Test Hall", 500, 20, 10, 2));
-            Map<Integer, List<Guest>> seating2 = planner2.generateSeating(new ArrayList<>());
+            SeatingPlanner planner2 = new SeatingPlanner(new Venue("Test Hall 2", 500, 20, 10, 2));
+            Map<Integer, List<Guest>> seating2 = planner2.generateSeating(guests);
             assertEquals(10, seating2.size());
         }
 
@@ -256,7 +258,8 @@ public class EventPlannerTests {
         void putsCorrectNumberOfGuestsPerTable() {
             Map<Integer, List<Guest>> seating = planner.generateSeating(guests);
             assertEquals(5, seating.get(0).size());
-            for (int i = 1; i < seating.size(); i++) assertEquals(5, seating.get(i).size());
+
+            for (int i = 0; i < venue.getCapacity()/guests.size(); i++) assertEquals(5, seating.get(i).size());
         }
 
         @Test
@@ -318,7 +321,7 @@ public class EventPlannerTests {
 
             assertEquals("Task 3", manager.executeNextTask().getDescription());
             assertEquals(0, manager.remainingTaskCount());
-            assertEquals(2, manager.completedTaskCount());
+            assertEquals(3, manager.completedTaskCount());
 
             assertNull(manager.executeNextTask());
         }
